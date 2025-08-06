@@ -1,5 +1,8 @@
 export interface Question {
-    readonly caption: string;
-    readonly answers: string[];
-    readonly correctAnswerIndex: number;
+  /** Текст вопроса */
+  readonly caption: string;
+  /** Варианты ответов */
+  readonly answers: string[];
+  /** Индекс правильного ответа в массиве answers */
+  readonly correctAnswerIndex: number;
 }
