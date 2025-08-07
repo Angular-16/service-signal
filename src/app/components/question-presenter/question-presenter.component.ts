@@ -10,7 +10,6 @@ import { Question } from '../../models/question.model';
 })
 export class QuestionPresenterComponent {
   readonly question = input.required<Question>();
-
   readonly answered = output<number>();
 
   onAnswer(answerIndex: number) {

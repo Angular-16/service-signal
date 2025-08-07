@@ -11,7 +11,7 @@ export class ExamService {
     {
       caption: 'How much is 4 + 4?',
       answers: ['4', '6', '8', '12'],
-      correctAnswerIndex: 1,
+      correctAnswerIndex: 2,
     },
     {
       caption: 'How much is 5 + 5?',
@@ -20,8 +20,8 @@ export class ExamService {
     },
     {
       caption: 'How much is 6 + 6?',
-      answers: ['6', '12', '18', '24'],
-      correctAnswerIndex: 1,
+      answers: ['6', '22', '18', '12'],
+      correctAnswerIndex: 3,
     },
   ]);
 
@@ -66,4 +66,8 @@ export class ExamService {
   );
 
   readonly correctAnswersCount = computed(() => this.correctAnswers().length);
+
+  answerCurrentQuestion(answerIndex: number): void {
+    this.#userAnswers.update((answers: number[]) => [...answers, answerIndex]);
+  }
 }
