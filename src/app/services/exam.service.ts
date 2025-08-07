@@ -1,5 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { Question } from '../models/question.model';
+import { Answer } from '../models/answer.model';
 
 @Injectable({
   providedIn: 'root',
@@ -31,7 +32,15 @@ export class ExamService {
   readonly #userAnswers = signal<number[]>([]);
 
   /** Публичная read-only версия сигнала для хранения индексов выбранных пользователем */
-  readonly userAnswers = this.#userAnswers.asReadonly();
+  readonly userAnswers = computed(() =>
+    this.#userAnswers().map<Answer>((userAnswer: number, index: number) => {
+      return {
+        userAnswerIndex: userAnswer,
+        isCorrect:
+          userAnswer === this.#userQuestions()[index].correctAnswerIndex,
+      } as Answer;
+    })
+  );
 
   readonly #isBusy = signal<boolean>(false);
   readonly isBusy = this.#isBusy.asReadonly();
@@ -49,6 +58,12 @@ export class ExamService {
 
   /** Флаг, указывающий, завершён ли тест (когда количество ответов равно количеству вопросов) */
   readonly isQuizDone = computed(
-    () => this.currentQuestionIndex() === this.userQuestionsCount()
+    () => this.#userAnswers().length === this.userQuestionsCount()
   );
+
+  readonly correctAnswers = computed(() =>
+    this.userAnswers().filter((answer: Answer) => answer.isCorrect)
+  );
+
+  readonly correctAnswersCount = computed(() => this.correctAnswers().length);
 }
