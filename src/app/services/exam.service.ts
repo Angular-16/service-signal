@@ -1,29 +1,49 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { Question } from '../models/question.model';
 import { Answer } from '../models/answer.model';
+import { BehaviorSubject, switchMap, tap } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ExamGeneratorService } from './exam-generator.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ExamService {
+  // Уровень сложности
+  generator = inject(ExamGeneratorService);
+
+  readonly #difficultyLevel = new BehaviorSubject<number>(1);
+
+  decreaseLevel(): void {
+    this.#difficultyLevel.next(this.#difficultyLevel.value - 1);
+  }
+
+  increaseLevel(): void {
+    this.#difficultyLevel.next(this.#difficultyLevel.value + 1);
+  }
+
+  repeatLevel(): void {
+    this.#difficultyLevel.next(this.#difficultyLevel.value);
+  }
+
+  level = toSignal(this.#difficultyLevel);
+
+  constructor() {
+    this.#difficultyLevel
+      .pipe(
+        tap((_: number) => this.#isBusy.set(true)),
+        switchMap((level) => this.generator.generateExam(level)),
+        tap((questions: Question[]) => {
+          this.#userQuestions.set(questions);
+          this.#userAnswers.set([]);
+          this.#isBusy.set(false);
+        })
+      )
+      .subscribe();
+  }
+
   /** Приватный сигнал, содержащий массив вопросов теста */
-  readonly #userQuestions = signal<Question[]>([
-    {
-      caption: 'How much is 4 + 4?',
-      answers: ['4', '6', '8', '12'],
-      correctAnswerIndex: 2,
-    },
-    {
-      caption: 'How much is 5 + 5?',
-      answers: ['5', '10', '15', '20'],
-      correctAnswerIndex: 1,
-    },
-    {
-      caption: 'How much is 6 + 6?',
-      answers: ['6', '22', '18', '12'],
-      correctAnswerIndex: 3,
-    },
-  ]);
+  readonly #userQuestions = signal<Question[]>([]);
 
   /** Публичная read-only версия сигнала, содержащего массив вопросов теста */
   readonly userQuestions = this.#userQuestions.asReadonly();
